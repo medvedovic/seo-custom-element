@@ -15,25 +15,30 @@ import { readElementAsync } from "../utils/readElementAsync";
 
 declare const CustomElement: any;
 
-type State = {
+type Elements = {
   readonly title: string;
   readonly description: string;
   readonly url: string;
 };
 
-const initialState: State = {
+const noData: Elements = {
   title: "no-title",
   description: "no-description",
   url: "no-url",
 };
 
+enum InitializationState {
+  Initializing = "initializing",
+  Failed = "failed",
+  Loaded = "loaded",
+}
+
 const Home: NextPage = () => {
-  const [failed, setFailed] = React.useState(false);
-  const [isScriptLoaded, setIsScriptLoaded] = React.useState(false);
-  const [state, setState] = React.useState<State>(initialState);
+  const [initializationState, setInitializationState] = React.useState(InitializationState.Initializing);
+  const [elements, setElements] = React.useState<Elements>(noData);
 
   React.useEffect(() => {
-    if (!isScriptLoaded) return;
+    if (!(initializationState === InitializationState.Loaded)) return;
 
     const initialize = async () => {
       try {
@@ -41,26 +46,25 @@ const Home: NextPage = () => {
           readElementAsync
         );
         const [title, description, url] = await Promise.all(promises);
-        setState((prevState) => ({
-          ...prevState,
+        setElements({
           title,
           description,
           url,
-        }));
+        });
 
         CustomElement.setHeight(600);
       } catch (error) {
         console.error(
           `Something went wrong while initializing custom element: ${error}`
         );
-        setFailed(true);
+        setInitializationState(InitializationState.Failed);
       }
     };
 
     initialize();
-  }, [isScriptLoaded, setFailed]);
+  }, [initializationState, setInitializationState]);
 
-  if (failed) {
+  if (initializationState === InitializationState.Failed) {
     return <div>Failed</div>;
   }
 
@@ -73,27 +77,27 @@ const Home: NextPage = () => {
       </Head>
 
       <Script
-        onLoad={() => setIsScriptLoaded(true)}
+        onLoad={() => setInitializationState(InitializationState.Loaded)}
         src="https://app.kontent.ai/js-api/custom-element/v1/custom-element.min.js"
       />
 
       <main className={styles.main}>
-        <Preview {...state} />
+        <Preview {...elements} />
         <div className={styles.container}>
           <MetaData
             title="Meta title:"
-            value={state.title}
-            errors={Array.from(validateTitle(state.title))}
+            value={elements.title}
+            errors={Array.from(validateTitle(elements.title))}
           />
           <MetaData
             title="Meta description:"
-            value={state.description}
-            errors={Array.from(validateDescription(state.description))}
+            value={elements.description}
+            errors={Array.from(validateDescription(elements.description))}
           />
           <MetaData
             title="Friendly url:"
-            value={state.url}
-            errors={Array.from(validateUrl(state.url))}
+            value={elements.url}
+            errors={Array.from(validateUrl(elements.url))}
           />
         </div>
       </main>
