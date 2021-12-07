@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./MetaData.module.css";
+import styles from "./MetaData.module.sass";
 
 type Props = {
   readonly title: string;
