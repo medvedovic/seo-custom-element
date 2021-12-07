@@ -5,6 +5,8 @@ import styles from "../styles/Home.module.sass";
 import Script from "next/script";
 import React from "react";
 import { MetaData } from "../components/MetaData";
+import { Preview } from "../components/Preview";
+
 
 declare const CustomElement: any;
 
@@ -17,7 +19,7 @@ type State = {
 const initialState: State = {
   title: "no-title",
   description: "no-description",
-  url: "no-url",
+  url: "no-url"
 };
 
 const readElement = <T extends unknown = string>(elementName: string) =>
@@ -45,7 +47,7 @@ const Home: NextPage = () => {
           ...prevState,
           title,
           description,
-          url,
+          url
         }));
 
         CustomElement.setHeight(600);
@@ -78,6 +80,7 @@ const Home: NextPage = () => {
       />
 
       <main className={styles.main}>
+        <Preview {...state} />
         <MetaData title="Meta title:" value={state.title} />
         <MetaData title="Meta description:" value={state.description} />
         <MetaData title="Friendly url:" value={state.url} />
