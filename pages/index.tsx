@@ -6,7 +6,12 @@ import Script from "next/script";
 import React from "react";
 import { MetaData } from "../components/MetaData";
 import { Preview } from "../components/Preview";
-
+import {
+  validateDescription,
+  validateTitle,
+  validateUrl,
+} from "../utils/validators";
+import { readElementAsync } from "../utils/readElementAsync";
 
 declare const CustomElement: any;
 
@@ -19,15 +24,8 @@ type State = {
 const initialState: State = {
   title: "no-title",
   description: "no-description",
-  url: "no-url"
+  url: "no-url",
 };
-
-const readElement = <T extends unknown = string>(elementName: string) =>
-  new Promise<T>((resolve) => {
-    CustomElement.getElementValue(elementName, (value: T) => {
-      resolve(value);
-    });
-  });
 
 const Home: NextPage = () => {
   const [failed, setFailed] = React.useState(false);
@@ -40,14 +38,14 @@ const Home: NextPage = () => {
     const initialize = async () => {
       try {
         const promises = ["title", "meta_description", "friendly_url"].map(
-          readElement
+          readElementAsync
         );
         const [title, description, url] = await Promise.all(promises);
         setState((prevState) => ({
           ...prevState,
           title,
           description,
-          url
+          url,
         }));
 
         CustomElement.setHeight(600);
@@ -81,9 +79,21 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <Preview {...state} />
-        <MetaData title="Meta title:" value={state.title} />
-        <MetaData title="Meta description:" value={state.description} />
-        <MetaData title="Friendly url:" value={state.url} />
+        <MetaData
+          title="Meta title:"
+          value={state.title}
+          errors={Array.from(validateTitle(state.title))}
+        />
+        <MetaData
+          title="Meta description:"
+          value={state.description}
+          errors={Array.from(validateDescription(state.description))}
+        />
+        <MetaData
+          title="Friendly url:"
+          value={state.url}
+          errors={Array.from(validateUrl(state.url))}
+        />
       </main>
     </div>
   );

@@ -5,9 +5,9 @@ type Props = {
   readonly title: string;
   readonly description: string;
   readonly url: string;
-}
+};
 
-export const Preview: React.FC<Props> = props => {
+export const Preview: React.FC<Props> = (props) => {
   const [shouldShowChild, setShouldShowChild] = React.useState(false);
 
   React.useEffect(() => {
