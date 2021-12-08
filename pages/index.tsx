@@ -33,24 +33,41 @@ enum InitializationState {
   Loaded = "loaded",
 }
 
+const fetchElements = async (elementCodenames: readonly string[]) => {
+  const promises = elementCodenames.map(readElementAsync);
+  return await Promise.all(promises);
+};
+
 const Home: NextPage = () => {
-  const [initializationState, setInitializationState] = React.useState(InitializationState.Initializing);
+  const [initializationState, setInitializationState] = React.useState(
+    InitializationState.Initializing
+  );
   const [elements, setElements] = React.useState<Elements>(noData);
+  const [elementCodenames, setElementCodenames] = React.useState<
+    readonly string[]
+  >(["title", "meta_description", "friendly_url"]);
+
+  React.useEffect(() => {
+    if (!(initializationState === InitializationState.Loaded)) return;
+    CustomElement.observeElementChanges(
+      [],
+      (changedElementCodenames: readonly string[]) => {
+        setElementCodenames(changedElementCodenames);
+      }
+    );
+  }, [initializationState]);
 
   React.useEffect(() => {
     if (!(initializationState === InitializationState.Loaded)) return;
 
     const initialize = async () => {
       try {
-        const promises = ["title", "meta_description", "friendly_url"].map(
-          readElementAsync
-        );
-        const [title, description, url] = await Promise.all(promises);
-        setElements({
-          title,
-          description,
-          url,
-        });
+        const [title, description, url] = await fetchElements(elementCodenames);
+        setElements((prev) => ({
+          title: title ?? prev.title,
+          description: description?? prev.description,
+          url: url ?? prev.url,
+        }));
 
         CustomElement.setHeight(600);
       } catch (error) {
@@ -62,7 +79,7 @@ const Home: NextPage = () => {
     };
 
     initialize();
-  }, [initializationState, setInitializationState]);
+  }, [initializationState, elementCodenames]);
 
   if (initializationState === InitializationState.Failed) {
     return <div>Failed</div>;
