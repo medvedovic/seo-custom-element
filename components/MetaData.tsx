@@ -9,14 +9,14 @@ type Props = {
 
 export const MetaData: React.FC<Props> = ({ title, value, errors = [] }) => {
   return (
-    <section className={styles.stack}>
-      <div className={styles.row}>
-        <h2 className={styles.title}>{title}</h2>
+    <section className={`${styles.stack} ${styles["stack--s"]}`}>
+      <div className={`${styles.stack} ${styles["stack--xs"]}`}>
+        <h2 className={`label-large-emphasis ${styles.title}`}>{title}</h2>
         <div>{value}</div>
       </div>
       <ul>
         {errors.map((error) => (
-          <li key={error}>{error}</li>
+          <li key={error}><span className="status status--is-missing">{error}</span></li>
         ))}
       </ul>
     </section>
