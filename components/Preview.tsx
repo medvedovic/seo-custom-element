@@ -1,3 +1,4 @@
+// @ts-ignore
 import SerpPreview from "react-serp-preview";
 import React from "react";
 
