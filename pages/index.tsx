@@ -12,6 +12,7 @@ import {
   validateUrl,
 } from "../utils/validators";
 import { readElementAsync } from "../utils/readElementAsync";
+import useResizeObserver from "use-resize-observer";
 
 declare const CustomElement: any;
 
@@ -46,6 +47,12 @@ const Home: NextPage = () => {
   const [elementCodenames, setElementCodenames] = React.useState<
     readonly string[]
   >(["title", "meta_description", "friendly_url"]);
+  const { ref, height = 0 } = useResizeObserver<HTMLDivElement>();
+
+  React.useEffect(() => {
+    if (!(initializationState === InitializationState.Loaded)) return;
+    CustomElement.setHeight(height);
+  }, [initializationState, height]);
 
   React.useEffect(() => {
     if (!(initializationState === InitializationState.Loaded)) return;
@@ -65,11 +72,9 @@ const Home: NextPage = () => {
         const [title, description, url] = await fetchElements(elementCodenames);
         setElements((prev) => ({
           title: title ?? prev.title,
-          description: description?? prev.description,
+          description: description ?? prev.description,
           url: url ?? prev.url,
         }));
-
-        CustomElement.setHeight(600);
       } catch (error) {
         console.error(
           `Something went wrong while initializing custom element: ${error}`
@@ -98,7 +103,7 @@ const Home: NextPage = () => {
         src="https://app.kontent.ai/js-api/custom-element/v1/custom-element.min.js"
       />
 
-      <main className={styles.main}>
+      <main className={styles.main} ref={ref}>
         <Preview {...elements} />
         <div className={styles.container}>
           <MetaData
