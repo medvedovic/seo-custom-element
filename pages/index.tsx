@@ -16,13 +16,13 @@ import useResizeObserver from "use-resize-observer";
 
 declare const CustomElement: any;
 
-type Elements = {
+type ElementValues = {
   readonly title: string;
   readonly description: string;
   readonly url: string;
 };
 
-const noData: Elements = {
+const noData: ElementValues = {
   title: "no-title",
   description: "no-description",
   url: "no-url",
@@ -34,19 +34,42 @@ enum InitializationState {
   Loaded = "loaded",
 }
 
-const fetchElements = async (elementCodenames: readonly string[]) => {
+enum Codenames {
+  Title = "title",
+  Description = "meta_description",
+  Url = "friendly_url",
+}
+
+const codenameToStateName: Record<Codenames, keyof ElementValues> = {
+  [Codenames.Title]: "title",
+  [Codenames.Description]: "description",
+  [Codenames.Url]: "url",
+};
+
+const getElementValues = async (
+  elementCodenames: readonly Codenames[]
+): Promise<Partial<ElementValues>> => {
   const promises = elementCodenames.map(readElementAsync);
-  return await Promise.all(promises);
+  const result = await Promise.all(promises);
+
+  return elementCodenames.reduce(
+    (accumulator, current, index) => ({
+      ...accumulator,
+      [codenameToStateName[current]]: result[index],
+    }),
+    {}
+  );
 };
 
 const Home: NextPage = () => {
   const [initializationState, setInitializationState] = React.useState(
     InitializationState.Initializing
   );
-  const [elements, setElements] = React.useState<Elements>(noData);
+  const [elementValues, setElementValues] =
+    React.useState<ElementValues>(noData);
   const [elementCodenames, setElementCodenames] = React.useState<
-    readonly string[]
-  >(["title", "meta_description", "friendly_url"]);
+    readonly Codenames[]
+  >(Object.values(Codenames));
   const { ref, height = 0 } = useResizeObserver<HTMLDivElement>();
 
   React.useEffect(() => {
@@ -57,8 +80,8 @@ const Home: NextPage = () => {
   React.useEffect(() => {
     if (!(initializationState === InitializationState.Loaded)) return;
     CustomElement.observeElementChanges(
-      [],
-      (changedElementCodenames: readonly string[]) => {
+      [], // Subscribe to all element changes
+      (changedElementCodenames: readonly Codenames[]) => {
         setElementCodenames(changedElementCodenames);
       }
     );
@@ -69,11 +92,10 @@ const Home: NextPage = () => {
 
     const initialize = async () => {
       try {
-        const [title, description, url] = await fetchElements(elementCodenames);
-        setElements((prev) => ({
-          title: title ?? prev.title,
-          description: description ?? prev.description,
-          url: url ?? prev.url,
+        const newValues = await getElementValues(elementCodenames);
+        setElementValues((prev) => ({
+          ...prev,
+          ...newValues,
         }));
       } catch (error) {
         console.error(
@@ -104,22 +126,22 @@ const Home: NextPage = () => {
       />
 
       <main className={styles.main} ref={ref}>
-        <Preview {...elements} />
+        <Preview {...elementValues} />
         <div className={styles.container}>
           <MetaData
             title="Meta title:"
-            value={elements.title}
-            errors={Array.from(validateTitle(elements.title))}
+            value={elementValues.title}
+            errors={Array.from(validateTitle(elementValues.title))}
           />
           <MetaData
             title="Meta description:"
-            value={elements.description}
-            errors={Array.from(validateDescription(elements.description))}
+            value={elementValues.description}
+            errors={Array.from(validateDescription(elementValues.description))}
           />
           <MetaData
             title="Friendly url:"
-            value={elements.url}
-            errors={Array.from(validateUrl(elements.url))}
+            value={elementValues.url}
+            errors={Array.from(validateUrl(elementValues.url))}
           />
         </div>
       </main>
