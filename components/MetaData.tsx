@@ -7,18 +7,20 @@ type Props = {
   readonly errors?: readonly string[];
 };
 
-export const MetaData: React.FC<Props> = ({ title, value, errors = [] }) => {
-  return (
-    <section className={`${styles.stack} ${styles["stack--s"]}`}>
-      <div className={`${styles.stack} ${styles["stack--xs"]}`}>
-        <h2 className={`label-large-emphasis ${styles.title}`}>{title}</h2>
-        <div>{value}</div>
-      </div>
+export const MetaData: React.FC<Props> = ({ title, value, errors = [] }) => (
+  <section className={`${styles.stack} ${styles["stack--s"]}`}>
+    <div className={`${styles.stack} ${styles["stack--xs"]}`}>
+      <h2 className={`label-large-emphasis ${styles.title}`}>{title}</h2>
+      <div>{value}</div>
+    </div>
+    {!!errors.length && (
       <ul>
         {errors.map((error) => (
-          <li key={error}><span className="status status--is-missing">{error}</span></li>
+          <li key={error}>
+            <span className="status status--is-missing">{error}</span>
+          </li>
         ))}
       </ul>
-    </section>
-  );
-};
+    )}
+  </section>
+);

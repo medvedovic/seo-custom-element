@@ -11,9 +11,10 @@ import {
   validateTitle,
   validateUrl,
 } from "../utils/validators";
-import { readElementAsync } from "../utils/readElementAsync";
+import { getElementValueAsync } from "../utils/getElementValueAsync";
 import useResizeObserver from "use-resize-observer";
 
+// CustomElement is available globally, but typescript compiler doesn't know that
 declare const CustomElement: any;
 
 type ElementValues = {
@@ -22,7 +23,7 @@ type ElementValues = {
   readonly url: string;
 };
 
-const noData: ElementValues = {
+const emptyElementValues: ElementValues = {
   title: "no-title",
   description: "no-description",
   url: "no-url",
@@ -46,10 +47,10 @@ const codenameToStateName: Record<Codenames, keyof ElementValues> = {
   [Codenames.Url]: "url",
 };
 
-const getElementValues = async (
+const getElementValuesByCodenames = async (
   elementCodenames: readonly Codenames[]
 ): Promise<Partial<ElementValues>> => {
-  const promises = elementCodenames.map(readElementAsync);
+  const promises = elementCodenames.map(getElementValueAsync);
   const result = await Promise.all(promises);
 
   return elementCodenames.reduce(
@@ -66,8 +67,8 @@ const Home: NextPage = () => {
     InitializationState.Initializing
   );
   const [elementValues, setElementValues] =
-    React.useState<ElementValues>(noData);
-  const [elementCodenames, setElementCodenames] = React.useState<
+    React.useState<ElementValues>(emptyElementValues);
+  const [changedElementCodenames, setChangedElementCodenames] = React.useState<
     readonly Codenames[]
   >(Object.values(Codenames));
   const { ref, height = 0 } = useResizeObserver<HTMLDivElement>();
@@ -82,7 +83,7 @@ const Home: NextPage = () => {
     CustomElement.observeElementChanges(
       [], // Subscribe to all element changes
       (changedElementCodenames: readonly Codenames[]) => {
-        setElementCodenames(changedElementCodenames);
+        setChangedElementCodenames(changedElementCodenames);
       }
     );
   }, [initializationState]);
@@ -90,11 +91,13 @@ const Home: NextPage = () => {
   React.useEffect(() => {
     if (!(initializationState === InitializationState.Loaded)) return;
 
-    const initialize = async () => {
+    const loadElementValues = async () => {
       try {
-        const newValues = await getElementValues(elementCodenames);
-        setElementValues((prev) => ({
-          ...prev,
+        const newValues = await getElementValuesByCodenames(
+          changedElementCodenames
+        );
+        setElementValues((previousValues) => ({
+          ...previousValues,
           ...newValues,
         }));
       } catch (error) {
@@ -105,8 +108,8 @@ const Home: NextPage = () => {
       }
     };
 
-    initialize();
-  }, [initializationState, elementCodenames]);
+    loadElementValues();
+  }, [initializationState, changedElementCodenames]);
 
   if (initializationState === InitializationState.Failed) {
     return <div>Failed</div>;

@@ -1,6 +1,6 @@
 declare const CustomElement: any;
 
-export const readElementAsync = <T extends unknown = string>(
+export const getElementValueAsync = <T extends unknown = string>(
   elementName: string
 ) =>
   new Promise<T>((resolve) => {
