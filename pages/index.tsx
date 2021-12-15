@@ -4,15 +4,14 @@ import styles from "../styles/Home.module.sass";
 
 import Script from "next/script";
 import React from "react";
-import { MetaData } from "../components/MetaData";
 import { Preview } from "../components/Preview";
-import {
-  validateDescription,
-  validateTitle,
-  validateUrl,
-} from "../utils/validators";
 import { getElementValueAsync } from "../utils/getElementValueAsync";
 import useResizeObserver from "use-resize-observer";
+import {
+  SEODescriptionSection,
+  SEOTitleSection,
+  SEOUrlSection,
+} from "../components/SEOSections";
 
 // CustomElement is available globally, but typescript compiler doesn't know that
 declare const CustomElement: any;
@@ -133,21 +132,9 @@ const Home: NextPage = () => {
       <main className={styles.main} ref={ref}>
         <Preview {...elementValues} />
         <div className={styles.container}>
-          <MetaData
-            title="Meta title:"
-            value={elementValues.title}
-            errors={Array.from(validateTitle(elementValues.title))}
-          />
-          <MetaData
-            title="Meta description:"
-            value={elementValues.description}
-            errors={Array.from(validateDescription(elementValues.description))}
-          />
-          <MetaData
-            title="Friendly url:"
-            value={elementValues.url}
-            errors={Array.from(validateUrl(elementValues.url))}
-          />
+          <SEOTitleSection value={elementValues.title} />
+          <SEODescriptionSection value={elementValues.description} />
+          <SEOUrlSection value={elementValues.url} />
         </div>
       </main>
     </div>

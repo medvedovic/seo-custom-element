@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./MetaData.module.sass";
+import styles from "./SEOMetaDataSection.module.sass";
 
 type Props = {
   readonly title: string;
@@ -7,7 +7,11 @@ type Props = {
   readonly errors?: readonly string[];
 };
 
-export const MetaData: React.FC<Props> = ({ title, value, errors = [] }) => (
+export const SEOMetaDataSection: React.FC<Props> = ({
+  title,
+  value,
+  errors = [],
+}) => (
   <section className={`${styles.stack} ${styles["stack--s"]}`}>
     <div className={`${styles.stack} ${styles["stack--xs"]}`}>
       <h2 className={`label-large-emphasis ${styles.title}`}>{title}</h2>
